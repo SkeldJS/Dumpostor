@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using BepInEx;
@@ -8,7 +7,6 @@ using BepInEx.IL2CPP;
 using Dumpostor.Dumpers;
 using HarmonyLib;
 using InnerNet;
-using Reactor;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
@@ -16,7 +14,6 @@ namespace Dumpostor
 {
     [BepInPlugin(Id)]
     [BepInProcess("Among Us.exe")]
-    [BepInDependency(ReactorPlugin.Id)]
     public class DumpostorPlugin : BasePlugin
     {
         public const string Id = "pl.js6pak.dumpostor";
@@ -31,6 +28,11 @@ namespace Dumpostor
 
             Harmony.PatchAll();
 
+            foreach (HatManager manager in GameObject.FindObjectsOfType<HatManager>())
+            {
+                Log.LogInfo($"Number of hats: {manager.AllHats.Count}");
+            }
+            
             if (string.IsNullOrEmpty(DumpedPath.Value) || !Directory.Exists(DumpedPath.Value))
             {
                 Log.LogError("DumpedPath is empty or is not a directory");
@@ -48,9 +50,8 @@ namespace Dumpostor
                     new EnumDumper<SystemTypes>(),
                     new EnumDumper<TaskTypes>(),
                     new EnumDumper<GameKeywords>(),
+                    new EnumDumper<DisconnectReasons>(),
                     new HatDumper(),
-                    new SkinDumper(),
-                    new PetDumper(),
                     new ColorDumper(),
                     new TranslationsDumper()
                 };
@@ -74,20 +75,15 @@ namespace Dumpostor
 
                 foreach (var mapType in (MapTypes[]) Enum.GetValues(typeof(MapTypes)))
                 {
-                    var shipPrefab = AmongUsClient.Instance.ShipPrefabs[(int) mapType];
-                    Coroutines.Start(DumpCoroutine(mapType, shipPrefab, mapDumpers));
+                    var shipPrefab = AmongUsClient.Instance.ShipPrefabs[(int)mapType];
+                    DumpCoroutine(mapType, shipPrefab, mapDumpers);
                 }
             };
         }
 
-        public IEnumerator DumpCoroutine(MapTypes mapType, AssetReference assetReference, IEnumerable<IMapDumper> dumpers)
+        public void DumpCoroutine(MapTypes mapType, AssetReference assetReference, IEnumerable<IMapDumper> dumpers)
         {
             var shipPrefab = assetReference.Instantiate();
-
-            while (!shipPrefab.IsDone)
-            {
-                yield return null;
-            }
 
             var shipStatus = shipPrefab.Result.GetComponent<ShipStatus>();
 
@@ -105,18 +101,13 @@ namespace Dumpostor
             assetReference.ReleaseInstance(shipPrefab.Result);
         }
 
-        [HarmonyPatch(typeof(AmongUsClient), nameof(AmongUsClient.Awake))]
+        [HarmonyPatch(typeof(StoreManager), nameof(StoreManager.Initialize))]
         private static class EntrypointPatch
         {
             public static event Action Initialized;
 
             public static void Postfix(AmongUsClient __instance)
             {
-                if (!AmongUsClient.Instance.Equals(__instance))
-                {
-                    return;
-                }
-
                 Initialized?.Invoke();
             }
         }

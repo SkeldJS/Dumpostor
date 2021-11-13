@@ -24,13 +24,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Reactor.MSBuild" Version="0.1.4" PrivateAssets="all" />
-        <PackageReference Include="Reactor" Version="1.0.0-rc.1" />
-
+        <Reference Include="$(AmongUs)\BepInEx\core\*.dll" Private="false" />
+        <Reference Include="$(AmongUs)\BepInEx\unhollowed\*.dll" Private="false" />
         <PackageReference Include="System.Text.Json" Version="5.0.2" />
     </ItemGroup>
 
     <Target Name="Copy" AfterTargets="Build" Condition="'$(AmongUs)' != ''">
-        <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" DestinationFolder="$(AmongUs)/BepInEx/plugins" Condition="'$(Configuration)' == 'Debug'" />
+        <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" DestinationFolder="$(AmongUs)/BepInEx/plugins/" Condition="'$(Configuration)' == 'Debug'" />
     </Target>
 </Project>

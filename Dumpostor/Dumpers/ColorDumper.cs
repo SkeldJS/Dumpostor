@@ -7,7 +7,7 @@ namespace Dumpostor.Dumpers
 {
     public class ColorDumper : IDumper
     {
-        public string FileName => "ColorType.json";
+        public string FileName => "colors.json";
 
         public string Dump()
         {

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using Il2CppSystem.Text;
-using Reactor.Extensions;
 using UnityEngine;
 
 namespace Dumpostor.Dumpers
@@ -25,7 +24,6 @@ namespace Dumpostor.Dumpers
 
             void Handle(NormalPlayerTask task, TaskLength length)
             {
-                task.Arrow.DestroyImmediate();
                 task.Initialize();
 
                 var taskConsoles = new List<TaskConsole>();
